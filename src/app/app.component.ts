@@ -1,13 +1,29 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { ProductListComponent } from './components/product-list/product-list.component';
+import { ProductFormComponent } from './components/product-form/product-form.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
+  imports: [CommonModule, ProductListComponent, ProductFormComponent],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styleUrls: ['./app.component.css']
 })
 export class AppComponent {
-  title = 'ProductCatalog';
+  openModal() {
+    const modalElement = document.getElementById('productModal');
+    if (modalElement) {
+      const modal = new (window as any).bootstrap.Modal(modalElement);
+      modal.show();
+    }
+  }
+
+  closeModal() {
+    const modalElement = document.getElementById('productModal');
+    if (modalElement) {
+      const modalInstance = (window as any).bootstrap.Modal.getInstance(modalElement);
+      modalInstance?.hide();
+    }
+  }
 }
