@@ -14,3 +14,16 @@
     padding: 10px;
   }
   
+  .spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+  }
+  
+  button[type="submit"] {
+    min-width: 120px;
+  }
+  
+  button[type="submit"]:disabled {
+    cursor: not-allowed;
+  }
+  

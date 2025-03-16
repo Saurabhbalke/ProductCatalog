@@ -1,8 +1,9 @@
-import { Component, EventEmitter, Output } from '@angular/core';
+import { Component, EventEmitter, Output, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ProductService } from '../../services/product.service';
 import { Product } from '../../models/product.model';
+import { NgForm } from '@angular/forms';
 
 @Component({
   selector: 'app-product-form',
@@ -13,6 +14,7 @@ import { Product } from '../../models/product.model';
 })
 export class ProductFormComponent {
   @Output() productAdded = new EventEmitter<void>();
+  @ViewChild('productForm') productForm!: NgForm;
 
   newProduct: Product = {
     name: '',
@@ -23,7 +25,7 @@ export class ProductFormComponent {
 
   selectedFile: File | null = null;
   imagePreview: string | ArrayBuffer | null = null;
-  isUploading: boolean = false; 
+  isSubmitting: boolean = false;
 
   constructor(private productService: ProductService) {}
 
@@ -44,14 +46,16 @@ export class ProductFormComponent {
     }
   }
 
-  // Add Product with Image Upload
-  addProduct(): void {
+  onSubmit() {
+    if (this.isSubmitting || !this.productForm.valid) return;
+    
+    this.isSubmitting = true;
+    
     if (!this.newProduct.name || !this.newProduct.description || this.newProduct.price <= 0) {
       alert('Please fill in all fields correctly.');
+      this.isSubmitting = false;
       return;
     }
-
-    this.isUploading = true; 
 
     const formData = new FormData();
     formData.append('name', this.newProduct.name);
@@ -62,22 +66,31 @@ export class ProductFormComponent {
       formData.append('image', this.selectedFile);
     }
 
-    this.productService.addProduct(formData).subscribe(() => {
-      alert('Product Added!');
-      this.productAdded.emit(); 
-      this.resetForm();
-      this.isUploading = false; 
-      location.reload(); 
-    }, () => {
-      alert('Failed to add product.');
-      this.isUploading = false;
+    this.productService.addProduct(formData).subscribe({
+      next: (response) => {
+        alert('Product added successfully!');
+        this.productAdded.emit();
+        this.resetForm();
+        this.productService.refreshProducts();
+      },
+      error: (error) => {
+        alert('Error adding product: ' + error.message);
+        console.error('Error:', error);
+        this.isSubmitting = false;
+      },
+      complete: () => {
+        this.isSubmitting = false;
+      }
     });
   }
 
-  // Reset Form
   resetForm() {
+    if (this.productForm) {
+      this.productForm.resetForm();
+    }
     this.newProduct = { name: '', description: '', price: 0, imageUrl: '' };
     this.selectedFile = null;
     this.imagePreview = null;
+    this.isSubmitting = false;
   }
 }
